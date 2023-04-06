@@ -1,0 +1,199 @@
+﻿@using MySql.Data.MySqlClient;
+@using Dapper;
+
+@page "/players"
+
+<PageTitle>Players</PageTitle>
+
+<h1>Players List</h1>
+
+<div class="row">
+	<div class="col-8">
+		<div class="players-cards">
+			@foreach (var player in playersList)
+			{
+				<PlayerComponent Data=@player
+							 OnSelected="()=>SelectPlayer(player)"
+							 OnDelete="() => RemovePlayer(player.Id)" />
+			}
+		</div>
+	</div>
+	<div class="col-2">
+
+		<div class="player-form">
+			<p>Pour modifier un joueur cliquez sur sa carte.</p>
+
+			<form>
+				<div class="form-group">
+					<label for="exampleInputEmail1">Firstname</label>
+					<input @bind="firstnameInputText" type="text" class="form-control" id="exampleInputEmail1" placeholder="Enter firstname">
+				</div>
+				<div class="form-group">
+					<label for="inputLastname">Lastname</label>
+					<input @bind="lastnameInputText" type="text" class="form-control" id="inputLastname" placeholder="Lastname">
+				</div>
+				<div class="form-check">
+					<input @bind="genderInput" type="checkbox" class="form-check-input" id="exampleCheck1">
+					<label class="form-check-label" for="exampleCheck1">Is a Man ?</label>
+				</div>
+				<div class="form-group">
+					<label for="inputSize">Size (cm)</label>
+					<input @bind="sizeInput" type="number" min="100" class="form-control" id="inputSize" placeholder="Enter size in metter">
+				</div>
+
+			</form>
+			<div>
+					<button @onclick="ChangePhoto" class="btn btn-primary" disabled="@(selectedPlayer == null)">Change Photo</button>
+			</div>
+			<button class="btn btn-outline-warning" @onclick="UpdateSelectedPlayer" disabled="@(selectedPlayer == null || !FormIsValid())">Update</button>
+			<button class="btn btn-outline-success" @onclick="AddPlayer" disabled="@(!FormIsValid())">Add new player</button>
+
+			@*<PhotosModal/>*@
+		</div>
+
+
+	</div>
+</div>
+
+
+@code {
+	private PlayerData? selectedPlayer;
+	private List<PlayerData> playersList = new();
+
+	private string? firstnameInputText;
+	private string? lastnameInputText;
+	private int sizeInput = 100;
+	private bool genderInput = true;
+
+	// TODO : Utiliser EntityFramework
+
+	private MySqlConnection connection;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var config = new ConfigurationBuilder()
+		.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+		.Build();
+
+		var connectionString = config.GetConnectionString("DefaultConnection");
+		connection = new MySqlConnection(connectionString);
+		LoadPlayers();
+	}
+
+	private void AddPlayer()
+	{
+		try
+		{
+
+			connection.Open();
+			Console.WriteLine("Connection à la base donnée réussie !");
+
+			var cmd = new MySqlCommand("INSERT INTO Players (firstname, lastname, size, man, photoIndex) VALUES (@Firstname, @Lastname, @Size, @Man, @PhotoIndex)", connection);
+			cmd.Parameters.AddWithValue("@Firstname", firstnameInputText);
+			cmd.Parameters.AddWithValue("@Lastname", lastnameInputText);
+			cmd.Parameters.AddWithValue("@Size", sizeInput);
+			cmd.Parameters.AddWithValue("@Man", genderInput);
+
+			Random rnd = new Random();
+
+			cmd.Parameters.AddWithValue("@PhotoIndex", rnd.Next(1, 6));
+
+			cmd.ExecuteNonQuery();
+			connection.Close();
+
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+		}
+
+		//playersList.Add(new PlayerData
+		//	{
+		//		Firstname = firstnameInputText,
+		//		Lastname = lastnameInputText,
+		//		Size = sizeInput,
+		//		Man = genderInput,
+		//	});
+
+		LoadPlayers();
+
+		firstnameInputText = string.Empty;
+		lastnameInputText = string.Empty;
+	}
+
+	private void ChangePhoto()
+	{
+		Random rnd = new();
+		selectedPlayer.PhotoIndex = rnd.Next(1, 6);
+	}
+
+	private void UpdateSelectedPlayer()
+	{
+		if (selectedPlayer != null)
+		{
+			connection.Open();
+
+			var sql = "UPDATE Players SET firstname = @Firstname, lastname = @Lastname, size = @Size, man = @Man, photoIndex= @PhotoIndex WHERE Id = @Id";
+
+			var cmd = new MySqlCommand(sql, connection);
+			cmd.Parameters.AddWithValue("@Id", selectedPlayer.Id);
+			cmd.Parameters.AddWithValue("@Firstname", firstnameInputText);
+			cmd.Parameters.AddWithValue("@Lastname", lastnameInputText);
+			cmd.Parameters.AddWithValue("@Size", sizeInput);
+			cmd.Parameters.AddWithValue("@Man", genderInput);
+			cmd.Parameters.AddWithValue("@PhotoIndex", selectedPlayer.PhotoIndex);
+
+			cmd.ExecuteNonQuery();
+
+			connection.Close();
+		}
+		LoadPlayers();
+	}
+
+	private void LoadPlayers()
+	{
+		connection.Open();
+		playersList = connection.Query<PlayerData>("SELECT * FROM players").ToList();
+		connection.Close();
+	}
+
+	private void SelectPlayer(PlayerData player)
+	{
+		selectedPlayer = player;
+		firstnameInputText = selectedPlayer.Firstname;
+		lastnameInputText = selectedPlayer.Lastname;
+		sizeInput = selectedPlayer.Size;
+		genderInput = selectedPlayer.Man;
+
+	}
+
+	private void RemovePlayer(int playerId)
+	{
+
+		connection.Open();
+
+		var sql = "DELETE FROM players WHERE id = @Id";
+		var affectedRows = connection.Execute(sql, new { Id = playerId });
+
+
+		if (affectedRows == 0)
+		{
+			Console.WriteLine($"Player with ID {playerId} not found in the database.");
+		}
+		else
+		{
+			Console.WriteLine($"Player with ID {playerId} has been deleted from the database.");
+		}
+
+		connection.Close();
+		//playersList.Remove(player);
+		selectedPlayer = null;
+
+		LoadPlayers();
+	}
+
+	private bool FormIsValid()
+	{
+		return !string.IsNullOrWhiteSpace(firstnameInputText) && !string.IsNullOrWhiteSpace(lastnameInputText);
+	}
+}

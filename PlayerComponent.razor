@@ -1,0 +1,34 @@
+﻿<div class="card" style="width: 18rem;" @onclick="Select">
+    <img class="card-img-top" src="@Data.GetPhotoPath()" alt="Card image cap">
+    <div class="card-body">
+        <h5 class="card-title">@Data.Firstname @Data.Lastname</h5>
+        <p class="card-text">@(Data.Man ? "Man" : "Woman") - @Data.Size cm</p>
+        <button class="btn btn-danger" @onclick="Delete">Remove</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public PlayerData Data { get; set; } = new();
+
+    // Event lorsqu'on clic sur le bouton remove
+    [Parameter]
+    public EventCallback<int> OnDelete { get; set; }
+
+
+    private async Task Delete()
+    {
+        await OnDelete.InvokeAsync(Data.Id);
+    }
+
+
+    [Parameter]
+    public EventCallback<PlayerData> OnSelected { get; set; }
+
+
+    private async Task Select()
+    {
+        await OnSelected.InvokeAsync(Data);
+    }
+
+}
