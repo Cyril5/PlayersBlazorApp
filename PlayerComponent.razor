@@ -1,4 +1,4 @@
-﻿<div class="card @(IsSelected ? "card-selected":"")" style="width: 18rem;" @onclick="Select">
+﻿<div class="card @(IsSelected ? "card-selected":"")" @onclick="Select">
     <img class="card-img-top" src="@Data.GetPhotoPath()" alt="Card image cap">
     <div class="card-body">
         <h5 class="card-title">@Data.Firstname @Data.Lastname</h5>

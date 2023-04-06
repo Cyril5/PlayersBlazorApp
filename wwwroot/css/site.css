@@ -1,6 +1,7 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
 .card {
+    width: 16rem;
     transition: transform 0.5s ease-in-out;
 }
 
