@@ -35,7 +35,7 @@
 					<input @bind="lastnameInputText" type="text" class="form-control" id="inputLastname" placeholder="Lastname">
 				</div>
 				<div class="form-check">
-					<input @bind="genderInput" type="checkbox" class="form-check-input" id="exampleCheck1">
+					<input type="checkbox" checked="@genderInput" value="@genderInput" @onchange="GenderInputChanged" class="form-check-input" id="exampleCheck1">
 					<label class="form-check-label" for="exampleCheck1">Is a Man ?</label>
 				</div>
 				<div class="form-group">
@@ -46,22 +46,19 @@
 					<label for="sportControlSelect">Sport</label>
 					<select @bind="sportInput" class="form-control" id="sportControlSelect">
 						<option></option>
-						<option>Formula</option>
-						<option>Golf</option>
-						<option>Soccer</option>
-						<option>Tennis</option>
-						<option>US Football</option>
+						@foreach (var sport in sports)
+						{
+							<option>@sport</option>
+						}
 					</select>
 				</div>
 
 			</form>
 			<div>
-					<button @onclick="HandleChangePhotoBtn" class="btn btn-primary" disabled="@(selectedPlayer == null)">Change Photo</button>
+					<button @onclick="OnClickPhotoBtn" class="btn btn-primary" disabled="@(selectedPlayer == null)">Change Photo</button>
 			</div>
 			<button class="btn btn-outline-warning" @onclick="UpdateSelectedPlayer" disabled="@(selectedPlayer == null || !FormIsValid())">Update</button>
 			<button class="btn btn-outline-success" @onclick="AddPlayer" disabled="@(!FormIsValid())">Add new player</button>
-
-			@*<PhotosModal/>*@
 		</div>
 
 
@@ -73,10 +70,14 @@
 	private PlayerData? selectedPlayer;
 	private List<PlayerData> playersList = new();
 
+	private List<string> sports = new() { "Formula", "Golf", "Soccer", "Tennis", "US Football" };
+
 	private string? firstnameInputText;
 	private string? lastnameInputText;
 	private int sizeInput = 100;
-	private bool genderInput = true;
+
+	public bool genderInput;
+
 	private string sportInput = String.Empty;
 
 	// TODO : Utiliser EntityFramework
@@ -85,6 +86,8 @@
 
 	protected override async Task OnInitializedAsync()
 	{
+		sports.Sort();
+
 		var config = new ConfigurationBuilder()
 		.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
 		.Build();
@@ -92,6 +95,21 @@
 		var connectionString = config.GetConnectionString("DefaultConnection");
 		connection = new MySqlConnection(connectionString);
 		LoadPlayers();
+	}
+
+
+	private void GenderInputChanged(ChangeEventArgs e)
+	{
+		if(selectedPlayer != null)
+		{
+			// get the checkbox state
+			//var value = e.Value;
+			genderInput = (bool)e.Value;
+			selectedPlayer.Man = genderInput;
+			Console.WriteLine(selectedPlayer.Man);
+			//Console.WriteLine("gender change ! : "+selectedPlayer.Man);
+			selectedPlayer.ChangePhoto();
+		}
 	}
 
 	private void AddPlayer()
@@ -136,7 +154,7 @@
 		lastnameInputText = string.Empty;
 	}
 
-	private void HandleChangePhotoBtn()
+	private void OnClickPhotoBtn()
 	{
 		selectedPlayer.ChangePhoto();
 	}
@@ -170,7 +188,10 @@
 		firstnameInputText = selectedPlayer.Firstname;
 		lastnameInputText = selectedPlayer.Lastname;
 		sizeInput = selectedPlayer.Size;
+
+
 		genderInput = selectedPlayer.Man;
+		Console.WriteLine(selectedPlayer.Man);
 		sportInput = selectedPlayer.Sport;
 
 	}
