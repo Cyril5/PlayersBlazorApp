@@ -1,13 +1,16 @@
-﻿<div class="card" style="width: 18rem;" @onclick="Select">
+﻿<div class="card @(IsSelected ? "card-selected":"")" style="width: 18rem;" @onclick="Select">
     <img class="card-img-top" src="@Data.GetPhotoPath()" alt="Card image cap">
     <div class="card-body">
         <h5 class="card-title">@Data.Firstname @Data.Lastname</h5>
-        <p class="card-text">@(Data.Man ? "Man" : "Woman") - @Data.Size cm</p>
+        <p class="card-text">@Data.Size cm @(string.IsNullOrEmpty(Data.Sport) ? "" : " - ") @Data.Sport </p>
         <button class="btn btn-danger" @onclick="Delete">Remove</button>
     </div>
 </div>
 
 @code {
+    [Parameter]
+    public bool IsSelected { get; set; } = false;
+
     [Parameter]
     public PlayerData Data { get; set; } = new();
 

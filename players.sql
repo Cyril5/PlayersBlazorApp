@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3307
--- Généré le : jeu. 06 avr. 2023 à 16:51
+-- Généré le : jeu. 06 avr. 2023 à 21:23
 -- Version du serveur :  10.5.4-MariaDB
 -- Version de PHP : 7.3.21
 
@@ -35,19 +35,20 @@ CREATE TABLE IF NOT EXISTS `players` (
   `size` int(11) NOT NULL DEFAULT 100,
   `man` tinyint(1) NOT NULL DEFAULT 1,
   `photoIndex` int(11) NOT NULL DEFAULT 1,
+  `sport` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=18 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=23 DEFAULT CHARSET=utf8;
 
 --
 -- Déchargement des données de la table `players`
 --
 
-INSERT INTO `players` (`id`, `firstname`, `lastname`, `size`, `man`, `photoIndex`) VALUES
-(4, 'Edward', 'Kovisky', 178, 1, 1),
-(11, 'Marine', 'Lamuru', 217, 0, 4),
-(10, 'Adeline', 'Fuiz', 185, 0, 2),
-(13, 'Harry', 'Clumbert', 178, 1, 4),
-(16, 'Paul', 'Becker', 176, 1, 3);
+INSERT INTO `players` (`id`, `firstname`, `lastname`, `size`, `man`, `photoIndex`, `sport`) VALUES
+(19, 'Henry', 'Olphman', 176, 1, 4, 'Tennis'),
+(11, 'Marine', 'Lamuru', 217, 0, 5, 'Tennis'),
+(22, 'Patrick', 'Lozak', 183, 1, 4, 'Soccer'),
+(21, 'Chris', 'Palmano', 174, 1, 2, 'Formula'),
+(16, 'Arnaud', 'Becker', 176, 1, 3, NULL);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
